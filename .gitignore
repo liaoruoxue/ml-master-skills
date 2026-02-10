@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Data & Models
+data/
+*.pth
+*.pt
+*.h5
+*.pkl
+*.joblib
+uv.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code local
+.claude/settings.local.json
+
+# Misc
+*.zip
+*.tar.gz

@@ -1,0 +1,69 @@
+{
+  "model": "all-MiniLM-L6-v2",
+  "entries": [
+    {
+      "id": "mnist-handwritten-digit-classification",
+      "task_type": "image_classification",
+      "descriptor": "MNIST handwritten digit classification using PyTorch CNN. Simple 2-layer CNN achieves 99%+ accuracy. BatchNorm and Dropout provide marginal improvement.",
+      "wisdom_ref": "wisdom/task_wisdom.md#mnist-handwritten-digit-classification",
+      "keywords": [
+        "mnist",
+        "handwritten",
+        "digit",
+        "classification",
+        "using",
+        "pytorch",
+        "cnn",
+        "simple",
+        "layer",
+        "cnn",
+        "achieves",
+        "accuracy",
+        "batchnorm",
+        "dropout",
+        "provide",
+        "marginal",
+        "improvement"
+      ]
+    },
+    {
+      "id": "mnist-classification-v21-test",
+      "task_type": "image_classification",
+      "descriptor": "Achieve >99% test accuracy on MNIST using PyTorch CNN within 5 minutes training time.",
+      "wisdom_ref": "wisdom/task_wisdom.md#mnist-classification-v21-test",
+      "keywords": [
+        "achieve",
+        "test",
+        "accuracy",
+        "mnist",
+        "using",
+        "pytorch",
+        "cnn",
+        "within",
+        "minutes",
+        "training",
+        "time"
+      ]
+    },
+    {
+      "id": "titanic-survival-long-horizon",
+      "task_type": "tabular",
+      "descriptor": "Titanic survival prediction - 13 implementation systematic exploration with Baseline→FE→Tree→Ensemble workflow achieving 83.71% accuracy",
+      "wisdom_ref": "wisdom/task_wisdom.md#titanic-survival-long-horizon",
+      "keywords": [
+        "titanic",
+        "survival",
+        "prediction",
+        "implementation",
+        "systematic",
+        "exploration",
+        "baseline",
+        "tree",
+        "ensemble",
+        "workflow",
+        "achieving",
+        "accuracy"
+      ]
+    }
+  ]
+}
