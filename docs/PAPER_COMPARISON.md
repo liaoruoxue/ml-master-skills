@@ -1,328 +1,328 @@
-# ML-Master vs 论文实现对照表
+# ML-Master vs Paper Implementation Comparison
 
-> 论文: "Toward Ultra-Long-Horizon Agentic Science: Cognitive Accumulation for Machine Learning Engineering"
+> Paper: "Toward Ultra-Long-Horizon Agentic Science: Cognitive Accumulation for Machine Learning Engineering"
 > arXiv: 2601.10402v3
-> ML-Master 版本: 2.1.0
+> ML-Master Version: 2.1.0
 
 ---
 
-## 1. 核心架构: Hierarchical Cognitive Caching (HCC)
+## 1. Core Architecture: Hierarchical Cognitive Caching (HCC)
 
-### 1.1 三层存储架构
+### 1.1 Three-Layer Storage Architecture
 
-| 层级 | 论文定义 | 论文用途 | ML-Master 实现 | 状态 |
-|------|----------|----------|----------------|------|
-| **L1** | Evolving Experience | 原始执行数据：代码、终端输出、错误堆栈 | `execution_trace.md` | ✅ 100% |
-| **L2** | Refined Knowledge | 提炼的知识：洞察、假设验证、实验结论 | `findings.md` + `task_plan.md` | ✅ 100% |
-| **L3** | Prior Wisdom | 跨任务智慧：最佳实践、常见错误、代码模板 | `wisdom/` 目录 | ✅ 95% |
+| Layer | Paper Definition | Paper Purpose | ML-Master Implementation | Status |
+|-------|-----------------|---------------|--------------------------|--------|
+| **L1** | Evolving Experience | Raw execution data: code, terminal output, error stacks | `execution_trace.md` | ✅ 100% |
+| **L2** | Refined Knowledge | Distilled knowledge: insights, hypothesis validation, experiment conclusions | `findings.md` + `task_plan.md` | ✅ 100% |
+| **L3** | Prior Wisdom | Cross-task wisdom: best practices, common errors, code templates | `wisdom/` directory | ✅ 95% |
 
-### 1.2 L1 详细对照
+### 1.2 L1 Detailed Comparison
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 存储内容 | 代码片段、终端输出、错误堆栈、临时观察 | Operations Log + Metric Log + Notes | ✅ |
-| 生命周期 | 阶段结束时清空 | `/promote` 后通过 `clear-l1.sh` 清空 | ✅ |
-| 更新频率 | 高频更新，防止信息丢失 | 5-Action Rule (每5次工具调用更新) | ✅ |
-| 大小限制 | 过大时触发压缩 | >80 行时 Hook 警告，建议 /promote | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Storage Content | Code patches, terminal output, error stacks, temp observations | Operations Log + Metric Log + Notes | ✅ |
+| Lifecycle | Cleared at phase end | Cleared via `clear-l1.sh` after `/promote` | ✅ |
+| Update Frequency | High-frequency updates to prevent info loss | 5-Action Rule (update every 5 tool calls) | ✅ |
+| Size Limit | Trigger compression when too large | Hook warns when >80 lines, suggests /promote | ✅ |
 
-### 1.3 L2 详细对照
+### 1.3 L2 Detailed Comparison
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 存储内容 | 关键判断、实验洞察、验证的假设 | findings.md 多个结构化 section | ✅ |
-| 计划状态 | 当前目标、进度追踪 | task_plan.md Research Plan 结构 | ✅ |
-| Best Code | 追踪当前最佳代码 | task_plan.md Current Best Code section | ✅ |
-| 生命周期 | 任务级持久化 | 任务完成前持续存在 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Storage Content | Key judgments, experiment insights, validated hypotheses | findings.md with structured sections | ✅ |
+| Plan State | Current goals, progress tracking | task_plan.md Research Plan structure | ✅ |
+| Best Code | Track current best code | task_plan.md Current Best Code section | ✅ |
+| Lifecycle | Task-level persistence | Persists until task completion | ✅ |
 
-### 1.4 L3 详细对照
+### 1.4 L3 Detailed Comparison
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 静态知识 | ML 最佳实践、常见错误解决方案 | `wisdom/global_wisdom.md` | ✅ |
-| 任务智慧 | 从完成任务中提炼的可迁移知识 | `wisdom/task_wisdom.md` | ✅ |
-| 语义索引 | Embedding 向量索引 h_n = E(d_n) | `wisdom/embeddings.json` | ✅ |
-| 语义检索 | cos(q, h_n) > δ 阈值检索 | `embedding_utils.py` search | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Static Knowledge | ML best practices, common error solutions | `wisdom/global_wisdom.md` | ✅ |
+| Task Wisdom | Transferable knowledge extracted from completed tasks | `wisdom/task_wisdom.md` | ✅ |
+| Semantic Index | Embedding vector index h_n = E(d_n) | `wisdom/embeddings.json` | ✅ |
+| Semantic Retrieval | cos(q, h_n) > δ threshold retrieval | `embedding_utils.py` search | ✅ |
 
 ---
 
-## 2. 上下文提升机制 (Context Promotion)
+## 2. Context Promotion Mechanism
 
 ### 2.1 P1: Phase-level Promotion
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 触发条件 | 阶段/Implementation 完成时 | `/promote` 命令手动触发 | ✅ |
-| 压缩过程 | Agent 总结 L1，提取洞察写入 L2 | promote.sh 显示 L1，Agent 总结 | ✅ |
-| L1 清空 | 压缩后清空 L1 | `clear-l1.sh` 脚本 | ✅ |
-| L2 更新 | 洞察追加到 L2 | Agent 更新 findings.md | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Trigger Condition | Phase/Implementation completion | `/promote` command (manual trigger) | ✅ |
+| Compression Process | Agent summarizes L1, extracts insights to L2 | promote.sh displays L1, Agent summarizes | ✅ |
+| L1 Clearing | Clear after compression | `clear-l1.sh` script | ✅ |
+| L2 Update | Append insights to L2 | Agent updates findings.md | ✅ |
 
 ### 2.2 P2: Task-level Promotion
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 触发条件 | 任务完全完成时 | `/complete` 命令 | ✅ |
-| 智慧提取 | 从 L2 提炼可迁移的任务级智慧 | Agent 总结写入 task_wisdom.md | ✅ |
-| L3 更新 | 添加到永久知识库 | 按任务类型分类追加 | ✅ |
-| Embedding 更新 | 更新语义索引 | embedding_utils.py add | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Trigger Condition | Task fully completed | `/complete` command | ✅ |
+| Wisdom Extraction | Distill transferable task-level wisdom from L2 | Agent summarizes and writes to task_wisdom.md | ✅ |
+| L3 Update | Add to permanent knowledge base | Appended by task type | ✅ |
+| Embedding Update | Update semantic index | embedding_utils.py add | ✅ |
 
-### 2.3 Context Hit (上下文命中)
+### 2.3 Context Hit
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 自动检索 | 需要信息时自动查 L1/L2 | CLAUDE.md 自动同步 (v2.1) | ✅ 95% |
-| L1 命中 | 返回原始数据 | 文件直接读取 | ✅ |
-| L2 命中 | 返回摘要版本 | /recover 从 L2 恢复 | ✅ |
-| 恢复机制 | /clear 后重建状态 | `/recover` 命令 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Auto Retrieval | Automatically query L1/L2 when info needed | CLAUDE.md auto-sync (v2.1) | ✅ 95% |
+| L1 Hit | Return raw data | Direct file read | ✅ |
+| L2 Hit | Return summarized version | /recover restores from L2 | ✅ |
+| Recovery Mechanism | Rebuild state after /clear | `/recover` command | ✅ |
 
 ---
 
-## 3. Research Plan 结构
+## 3. Research Plan Structure
 
-### 3.1 m×q 分层计划
+### 3.1 m×q Hierarchical Plan
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| m Directions | 多个探索方向 | task_plan.md Direction 1/2/3... | ✅ |
-| q Implementations | 每方向多个具体实施 | Implementation X.1, X.2... | ✅ |
-| 状态追踪 | pending/in_progress/complete/abandoned | Status 字段 | ✅ |
-| Outcome 记录 | 每个实施的结果和学习 | Outcome 字段 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| m Directions | Multiple exploration directions | task_plan.md Direction 1/2/3... | ✅ |
+| q Implementations | Multiple implementations per direction | Implementation X.1, X.2... | ✅ |
+| Status Tracking | pending/in_progress/complete/abandoned | Status field | ✅ |
+| Outcome Recording | Results and learnings per implementation | Outcome field | ✅ |
 
 ### 3.2 Best Code Tracking
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 代码路径 | 追踪最佳代码文件 | Current Best Code - File 字段 | ✅ |
-| 评估指标 | 记录使用的指标 | Metric 字段 | ✅ |
-| 最佳分数 | 当前最高分数 | Score 字段 | ✅ |
-| 历史演进 | 记录分数提升历程 | findings.md Best Code History | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Code Path | Track best code file | Current Best Code - File field | ✅ |
+| Evaluation Metric | Record metrics used | Metric field | ✅ |
+| Best Score | Current highest score | Score field | ✅ |
+| History | Record score progression | findings.md Best Code History | ✅ |
 
 ### 3.3 Metric Tracking
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 实时记录 | 每次运行后记录指标 | execution_trace.md Metric Log | ✅ |
-| 对比基线 | vs Best 列 | Metric Log vs Best 字段 | ✅ |
-| 实验汇总 | 跨实验比较 | findings.md Experiment Results | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Real-time Recording | Record metrics after each run | execution_trace.md Metric Log | ✅ |
+| Baseline Comparison | vs Best column | Metric Log vs Best field | ✅ |
+| Experiment Summary | Cross-experiment comparison | findings.md Experiment Results | ✅ |
 
 ---
 
-## 4. 规则与约束
+## 4. Rules & Constraints
 
 ### 4.1 N-Action Rule
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 更新频率 | 每 N 次工具调用更新 L1 | 5-Action Rule (v2.1 优化) | ✅ |
-| 触发工具 | Write/Edit/Bash 等修改操作 | PostToolUse Hook 计数 | ✅ |
-| 提醒机制 | 提醒 Agent 更新 | Hook 输出提醒信息 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Update Frequency | Update L1 every N tool calls | 5-Action Rule (v2.1 optimized) | ✅ |
+| Trigger Tools | Write/Edit/Bash and other modification ops | PostToolUse Hook counter | ✅ |
+| Reminder Mechanism | Remind Agent to update | Hook output reminder | ✅ |
 
-### 4.2 Dual Read/Write Rule (双重读写规则)
+### 4.2 Dual Read/Write Rule
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| L1 写入 | 只写执行细节 | 代码、输出、错误 → execution_trace.md | ✅ |
-| L2 写入 | 只写结论洞察 | 洞察、假设、决策 → findings.md | ✅ |
-| 禁止混淆 | 不能交叉写入 | SKILL.md 规则明确禁止 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| L1 Write | Only write execution details | Code, output, errors → execution_trace.md | ✅ |
+| L2 Write | Only write conclusions/insights | Insights, hypotheses, decisions → findings.md | ✅ |
+| No Mixing | No cross-writing allowed | SKILL.md rules explicitly forbid mixing | ✅ |
 
-### 4.3 禁止上下文堆积
+### 4.3 No Context Accumulation
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 依赖文件 | 不依赖对话历史记忆错误 | 规则明确要求读取文件 | ✅ |
-| 持久化 | 所有重要信息写入文件 | L1/L2/L3 文件系统 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| File Dependency | Don't rely on conversation history for error recall | Rules explicitly require file reading | ✅ |
+| Persistence | All important info written to files | L1/L2/L3 file system | ✅ |
 
 ---
 
-## 5. L3 语义检索系统
+## 5. L3 Semantic Retrieval System
 
-### 5.1 Embedding 机制
+### 5.1 Embedding Mechanism
 
-| 论文要求 | 论文公式 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 向量编码 | h_n = E(d_n) | sentence-transformers all-MiniLM-L6-v2 | ✅ |
-| 相似度计算 | cos(q, h_n) | numpy cosine similarity | ✅ |
-| 阈值过滤 | > δ (threshold) | δ = 0.5 默认阈值 | ✅ |
-| Top-K 返回 | 返回最相似的 K 个 | top_k = 3 默认 | ✅ |
+| Paper Requirement | Paper Formula | ML-Master Implementation | Status |
+|-------------------|--------------|--------------------------|--------|
+| Vector Encoding | h_n = E(d_n) | sentence-transformers all-MiniLM-L6-v2 | ✅ |
+| Similarity Calculation | cos(q, h_n) | numpy cosine similarity | ✅ |
+| Threshold Filtering | > δ (threshold) | δ = 0.5 default threshold | ✅ |
+| Top-K Return | Return K most similar | top_k = 3 default | ✅ |
 
 ### 5.2 Context Prefetching
 
-| 论文要求 | 论文描述 | ML-Master 实现 | 状态 |
-|----------|----------|----------------|------|
-| 触发时机 | 任务开始时 | init-session.sh 支持描述参数 | ✅ |
-| 查询生成 | q = E(task_descriptor) | 传入任务描述进行检索 | ✅ |
-| 智慧加载 | 预加载相关 wisdom | 显示匹配的 task_wisdom 条目 | ✅ |
+| Paper Requirement | Paper Description | ML-Master Implementation | Status |
+|-------------------|-------------------|--------------------------|--------|
+| Trigger Timing | At task start | init-session.sh supports description parameter | ✅ |
+| Query Generation | q = E(task_descriptor) | Task description passed for retrieval | ✅ |
+| Wisdom Loading | Pre-load relevant wisdom | Display matching task_wisdom entries | ✅ |
 
-### 5.3 降级方案
+### 5.3 Fallback Strategy
 
-| 场景 | 论文要求 | ML-Master 实现 | 状态 |
-|------|----------|----------------|------|
-| 无 sentence-transformers | 应有降级方案 | Jaccard 关键词匹配 | ✅ |
-| 无 Python | 应能继续工作 | 跳过检索，仅警告 | ✅ |
-
----
-
-## 6. 命令与工作流
-
-### 6.1 命令对照
-
-| 功能 | 论文描述 | ML-Master 命令 | 实现脚本 | 状态 |
-|------|----------|----------------|----------|------|
-| 初始化 | 创建 L1/L2，加载 L3 | `/plan` | init-session.sh | ✅ |
-| 状态查看 | 快速了解当前状态 | `/status` | status.sh (v2.1) | ✅ |
-| P1 提升 | L1 → L2 压缩 | `/promote` | promote.sh | ✅ |
-| 恢复状态 | /clear 后重建 | `/recover` | recover.sh | ✅ |
-| P2 提升 | L2 → L3 智慧提取 | `/complete` | task-complete.sh | ✅ |
-| 清空 L1 | 阶段结束清理 | 内部调用 | clear-l1.sh | ✅ |
-
-### 6.2 工作流对照
-
-| 阶段 | 论文工作流 | ML-Master 工作流 | 状态 |
-|------|-----------|------------------|------|
-| 任务开始 | 初始化 + Context Prefetching | /plan [description] | ✅ |
-| 执行中 | N-Action Rule 更新 L1 | 5-Action Rule + Hooks | ✅ |
-| 阶段完成 | P1 Promotion | /promote | ✅ |
-| 任务完成 | P2 Promotion | /complete | ✅ |
-| 上下文清除 | Context Hit 恢复 | /recover + CLAUDE.md | ✅ |
+| Scenario | Paper Requirement | ML-Master Implementation | Status |
+|----------|-------------------|--------------------------|--------|
+| No sentence-transformers | Should have fallback | Jaccard keyword matching | ✅ |
+| No Python | Should still work | Skip retrieval, warn only | ✅ |
 
 ---
 
-## 7. Hooks 机制
+## 6. Commands & Workflow
+
+### 6.1 Command Mapping
+
+| Function | Paper Description | ML-Master Command | Implementation Script | Status |
+|----------|-------------------|--------------------|-----------------------|--------|
+| Initialize | Create L1/L2, load L3 | `/plan` | init-session.sh | ✅ |
+| Status View | Quick state overview | `/status` | status.sh (v2.1) | ✅ |
+| P1 Promotion | L1 → L2 compression | `/promote` | promote.sh | ✅ |
+| State Recovery | Rebuild after /clear | `/recover` | recover.sh | ✅ |
+| P2 Promotion | L2 → L3 wisdom extraction | `/complete` | task-complete.sh | ✅ |
+| Clear L1 | Phase-end cleanup | Internal call | clear-l1.sh | ✅ |
+
+### 6.2 Workflow Mapping
+
+| Phase | Paper Workflow | ML-Master Workflow | Status |
+|-------|---------------|-------------------|--------|
+| Task Start | Init + Context Prefetching | /plan [description] | ✅ |
+| Execution | N-Action Rule updates L1 | 5-Action Rule + Hooks | ✅ |
+| Phase Complete | P1 Promotion | /promote | ✅ |
+| Task Complete | P2 Promotion | /complete | ✅ |
+| Context Cleared | Context Hit recovery | /recover + CLAUDE.md | ✅ |
+
+---
+
+## 7. Hooks Mechanism
 
 ### 7.1 PreToolUse Hook
 
-| 论文要求 | 论文描述 | ML-Master v2.0 | ML-Master v2.1 | 状态 |
-|----------|----------|----------------|----------------|------|
-| Context Check | 执行前检查状态 | 每次输出完整状态 | 仅 L1>80 行警告 | ✅ 优化 |
-| 触发工具 | 修改类工具 | Write\|Edit\|Bash\|Read\|Glob\|Grep | Write\|Edit\|Bash | ✅ 优化 |
+| Paper Requirement | Paper Description | ML-Master v2.0 | ML-Master v2.1 | Status |
+|-------------------|-------------------|-----------------|-----------------|--------|
+| Context Check | Check state before execution | Full status output each time | Only warn when L1 > 80 lines | ✅ Optimized |
+| Trigger Tools | Modification tools | Write\|Edit\|Bash\|Read\|Glob\|Grep | Write\|Edit\|Bash | ✅ Optimized |
 
 ### 7.2 PostToolUse Hook
 
-| 论文要求 | 论文描述 | ML-Master v2.0 | ML-Master v2.1 | 状态 |
-|----------|----------|----------------|----------------|------|
-| 更新提醒 | 提醒更新 L1 | 每次提醒 | 每 5 次提醒 | ✅ 优化 |
-| Best Code 提醒 | Metric 提升时更新 | 每次提醒 | 移除 (减少噪音) | ✅ 优化 |
+| Paper Requirement | Paper Description | ML-Master v2.0 | ML-Master v2.1 | Status |
+|-------------------|-------------------|-----------------|-----------------|--------|
+| Update Reminder | Remind to update L1 | Every call | Every 5 calls | ✅ Optimized |
+| Best Code Reminder | Update when metric improves | Every call | Removed (reduce noise) | ✅ Optimized |
 
 ---
 
-## 8. 验收标准
+## 8. Acceptance Criteria
 
-| 论文验收标准 | 描述 | ML-Master 实现 | 验证方式 | 状态 |
-|--------------|------|----------------|----------|------|
-| 持久化验证 | /clear 后 1 分钟内恢复状态 | /recover + CLAUDE.md | CIFAR-10 测试验证 | ✅ |
-| 信息流转 | L1 锯齿状，L2 阶梯状 | 文件大小变化符合预期 | 实际观察验证 | ✅ |
-| 长程推理 | 第 50 轮引用第 1 轮原则 | L2 持久化 Strategic Goal | CIFAR-10 测试验证 | ✅ |
-| 5-Question Test | 能回答 5 个核心问题 | 所有问题从文件可回答 | /status + /recover | ✅ |
-
----
-
-## 9. 未实现 / 平台限制
-
-| 论文特性 | 原因 | 替代方案 | 影响程度 |
-|----------|------|----------|----------|
-| **并行 Implementation 执行** | Claude Code 单线程限制 | 顺序执行，保持 m×q 结构 | 🟡 低 |
-| **Initial Code Phase 分离** | 设计选择 | Agent 自行判断分阶段 | 🟢 极低 |
-| **完全自动 Context Hit** | Hook 能力限制 | CLAUDE.md 近似实现 | 🟢 极低 |
+| Paper Criterion | Description | ML-Master Implementation | Verification | Status |
+|-----------------|-------------|--------------------------|--------------|--------|
+| Persistence | Recover state within 1 min after /clear | /recover + CLAUDE.md | Verified with CIFAR-10 test | ✅ |
+| Information Flow | L1 sawtooth, L2 staircase pattern | File size changes match expectations | Observed in practice | ✅ |
+| Long-horizon Reasoning | Round 50 references round 1 principles | L2 persists Strategic Goal | Verified with CIFAR-10 test | ✅ |
+| 5-Question Test | Can answer 5 core questions | All answers derivable from files | /status + /recover | ✅ |
 
 ---
 
-## 10. 版本演进
+## 9. Not Implemented / Platform Limitations
 
-| 版本 | 主要变化 | 论文完成度 |
-|------|----------|-----------|
-| v2.0.0 | 初始 HCC 实现 | ~90% |
-| v2.1.0 | Hook 优化 + /status + CLAUDE.md 自动同步 | **~95%** |
-
----
-
-## 11. 实战验证: CIFAR-10 挑战
-
-| 指标 | 结果 |
-|------|------|
-| 目标 | >85% Test Accuracy |
-| 达成 | **89.38%** |
-| 模型迭代 | 3 Implementations (75.47% → 82.59% → 89.38%) |
-| P1 执行 | 3 次 |
-| P2 执行 | 1 次 |
-| L3 更新 | task_wisdom.md 已记录 |
-| 验证功能 | L1/L2/L3、P1/P2、Best Code Tracking、m×q 结构 |
+| Paper Feature | Reason | Alternative | Impact |
+|---------------|--------|-------------|--------|
+| **Parallel Implementation Execution** | Claude Code single-thread limitation | Sequential execution, maintain m×q structure | Low |
+| **Initial Code Phase Separation** | Design choice | Agent decides phasing independently | Very Low |
+| **Fully Automatic Context Hit** | Hook capability limitation | Approximated via CLAUDE.md | Very Low |
 
 ---
 
-## 12. 文件结构
+## 10. Version History
+
+| Version | Major Changes | Paper Coverage |
+|---------|---------------|----------------|
+| v2.0.0 | Initial HCC implementation | ~90% |
+| v2.1.0 | Hook optimization + /status + CLAUDE.md auto-sync | **~95%** |
+
+---
+
+## 11. Practical Validation: CIFAR-10 Challenge
+
+| Metric | Result |
+|--------|--------|
+| Target | >85% Test Accuracy |
+| Achieved | **89.38%** |
+| Model Iterations | 3 Implementations (75.47% → 82.59% → 89.38%) |
+| P1 Executions | 3 |
+| P2 Executions | 1 |
+| L3 Update | task_wisdom.md recorded |
+| Features Validated | L1/L2/L3, P1/P2, Best Code Tracking, m×q structure |
+
+---
+
+## 12. File Structure
 
 ```
 .claude/skills/ml-master/
-├── SKILL.md                 # v2.1.0 主配置 + Hooks
-├── CLAUDE.md                # Skill 级上下文说明
-├── PAPER_COMPARISON.md      # 本文档
+├── SKILL.md                 # v2.1.0 main config + Hooks
+├── CLAUDE.md                # Skill-level context description
+├── PAPER_COMPARISON.md      # This document
 ├── templates/
-│   ├── execution_trace.md   # L1 模板 (简化版 4 sections)
-│   ├── task_plan.md         # L2 计划模板
-│   └── findings.md          # L2 知识模板
+│   ├── execution_trace.md   # L1 template (simplified 4 sections)
+│   ├── task_plan.md         # L2 plan template
+│   └── findings.md          # L2 knowledge template
 ├── wisdom/
-│   ├── global_wisdom.md     # L3 静态知识
-│   ├── task_wisdom.md       # L3 任务智慧
-│   ├── embeddings.json      # L3 向量索引
-│   └── embedding_utils.py   # 嵌入工具
+│   ├── global_wisdom.md     # L3 static knowledge
+│   ├── task_wisdom.md       # L3 task wisdom
+│   ├── embeddings.json      # L3 vector index
+│   └── embedding_utils.py   # Embedding utility
 └── scripts/
     ├── init-session.sh      # /plan
     ├── status.sh            # /status (v2.1)
     ├── promote.sh           # /promote (P1)
     ├── recover.sh           # /recover
     ├── task-complete.sh     # /complete (P2)
-    ├── clear-l1.sh          # 清空 L1
-    ├── check-complete.sh    # 完成检查
-    └── extract-metrics.sh   # metrics 提取 (v2.1)
+    ├── clear-l1.sh          # Clear L1
+    ├── check-complete.sh    # Completion check
+    └── extract-metrics.sh   # Metrics extraction (v2.1)
 ```
 
 ---
 
-## 13. 总结
+## 13. Summary
 
 ```
-论文完整度: ██████████████████████░░ ~95%
+Paper Coverage: ██████████████████████░░ ~95%
 
-✅ 完全实现:
-   - HCC 三层存储架构 (L1/L2/L3)
-   - P1/P2 上下文提升机制
-   - Research Plan m×q 结构
+✅ Fully Implemented:
+   - HCC three-layer storage architecture (L1/L2/L3)
+   - P1/P2 context promotion mechanism
+   - Research Plan m×q structure
    - Best Code Tracking
    - Metric Tracking
-   - L3 Embedding 语义检索
+   - L3 Embedding semantic retrieval
    - N-Action Rule (5-Action)
-   - 双重读写规则
-   - Context Hit (CLAUDE.md 实现)
+   - Dual Read/Write Rule
+   - Context Hit (via CLAUDE.md)
 
-⚠️ 部分实现 (平台限制):
-   - 并行 Implementation 执行 → 顺序执行替代
-   - Initial Code Phase → Agent 自行判断
+⚠️ Partially Implemented (Platform Limitations):
+   - Parallel Implementation execution → Sequential alternative
+   - Initial Code Phase → Agent decides independently
 
-📊 实战验证:
-   - CIFAR-10: 89.38% (目标 >85%)
-   - 完整走通 L1→L2→L3 全流程
+📊 Practical Validation:
+   - CIFAR-10: 89.38% (target >85%)
+   - Full L1→L2→L3 pipeline verified
 ```
 
 ---
 
-## 附录 A: Claude Code Skills 能力使用总结
+## Appendix A: Claude Code Skills Capability Summary
 
-在实现 ML-Master (HCC 论文) 过程中，使用了以下 Claude Code Skills 能力：
+During the ML-Master (HCC paper) implementation, the following Claude Code Skills capabilities were used:
 
-### A.1 Skill 定义 (`SKILL.md`)
+### A.1 Skill Definition (`SKILL.md`)
 
 ```yaml
-# 核心配置文件结构
+# Core config file structure
 name: ml-master
 version: 2.1.0
 description: Hierarchical Cognitive Caching for ML tasks
 ```
 
-**使用方式**：
-- 定义 Skill 元数据 (name, version, description)
-- 声明命令 (commands) 和规则 (rules)
-- 配置 Hooks 触发条件
+**Usage**:
+- Define Skill metadata (name, version, description)
+- Declare commands and rules
+- Configure Hook triggers
 
-### A.2 Hooks 系统 (核心能力)
+### A.2 Hooks System (Core Capability)
 
 #### PreToolUse Hook
 ```yaml
@@ -332,7 +332,7 @@ hooks:
       hooks:
         - type: command
           command: |
-            # 只在 L1 > 80 行时警告
+            # Only warn when L1 > 80 lines
             if [ -f execution_trace.md ]; then
               LINES=$(wc -l < execution_trace.md)
               if [ "$LINES" -gt 80 ]; then
@@ -341,7 +341,7 @@ hooks:
             fi
 ```
 
-**用途**：工具调用**前**检查状态
+**Purpose**: Check state **before** tool calls
 
 #### PostToolUse Hook
 ```yaml
@@ -350,7 +350,7 @@ PostToolUse:
     hooks:
       - type: command
         command: |
-          # 5-Action Rule 计数器
+          # 5-Action Rule counter
           COUNT_FILE="/tmp/ml-master-action-count-$$"
           COUNT=$(($(cat "$COUNT_FILE" 2>/dev/null || echo 0) + 1))
           echo $COUNT > "$COUNT_FILE"
@@ -359,19 +359,19 @@ PostToolUse:
           fi
 ```
 
-**用途**：工具调用**后**提醒更新 L1
+**Purpose**: Remind to update L1 **after** tool calls
 
-### A.3 自定义命令 (Slash Commands)
+### A.3 Custom Commands (Slash Commands)
 
-| 命令 | 脚本 | 论文功能 |
-|------|------|----------|
-| `/plan` | `init-session.sh` | 初始化 + Context Prefetching |
-| `/status` | `status.sh` | 快速状态概览 |
+| Command | Script | Paper Function |
+|---------|--------|----------------|
+| `/plan` | `init-session.sh` | Init + Context Prefetching |
+| `/status` | `status.sh` | Quick state overview |
 | `/promote` | `promote.sh` | P1 Promotion (L1→L2) |
-| `/recover` | `recover.sh` | Context Hit 恢复 |
+| `/recover` | `recover.sh` | Context Hit recovery |
 | `/complete` | `task-complete.sh` | P2 Promotion (L2→L3) |
 
-**定义方式**：
+**Definition**:
 ```yaml
 commands:
   - name: promote
@@ -379,33 +379,33 @@ commands:
     script: scripts/promote.sh
 ```
 
-### A.4 Shell 脚本 (`scripts/`)
+### A.4 Shell Scripts (`scripts/`)
 
 ```
 scripts/
-├── init-session.sh      # 创建 L1/L2 文件 + CLAUDE.md
-├── status.sh            # 解析文件显示状态
-├── promote.sh           # 显示 L1 内容供 Agent 总结
-├── recover.sh           # 从 L2 恢复认知状态
-├── task-complete.sh     # P2 触发 + Embedding 命令提示
-├── clear-l1.sh          # 重置 L1 为模板
-└── extract-metrics.sh   # 从日志提取指标
+├── init-session.sh      # Create L1/L2 files + CLAUDE.md
+├── status.sh            # Parse files and display status
+├── promote.sh           # Display L1 content for Agent to summarize
+├── recover.sh           # Recover cognitive state from L2
+├── task-complete.sh     # P2 trigger + Embedding command prompt
+├── clear-l1.sh          # Reset L1 to template
+└── extract-metrics.sh   # Extract metrics from logs
 ```
 
-**特点**：脚本输出会成为 Agent 的输入，实现**人机协作**
+**Key feature**: Script output becomes Agent input, enabling **human-AI collaboration**
 
-### A.5 模板系统 (`templates/`)
+### A.5 Template System (`templates/`)
 
 ```
 templates/
-├── execution_trace.md   # L1 工作记忆模板
-├── task_plan.md         # L2 战略计划模板
-└── findings.md          # L2 知识库模板
+├── execution_trace.md   # L1 working memory template
+├── task_plan.md         # L2 strategic plan template
+└── findings.md          # L2 knowledge base template
 ```
 
-**使用方式**：`init-session.sh` 复制模板到项目目录
+**Usage**: `init-session.sh` copies templates to project directory
 
-### A.6 CLAUDE.md (项目上下文)
+### A.6 CLAUDE.md (Project Context)
 
 ```markdown
 # Project Context (ML-Master)
@@ -420,25 +420,25 @@ templates/
 - `/promote` - Compress L1→L2
 ```
 
-**能力**：Claude Code 自动读取项目根目录的 `CLAUDE.md`，实现**自动 Context Hit**
+**Capability**: Claude Code automatically reads `CLAUDE.md` from the project root, enabling **automatic Context Hit**
 
-### A.7 Wisdom 目录 (L3 永久存储)
+### A.7 Wisdom Directory (L3 Permanent Storage)
 
 ```
 wisdom/
-├── global_wisdom.md     # ML 最佳实践 (静态)
-├── task_wisdom.md       # 任务级智慧 (P2 追加)
-├── embeddings.json      # 向量索引
-└── embedding_utils.py   # 语义检索工具
+├── global_wisdom.md     # ML best practices (static)
+├── task_wisdom.md       # Task-level wisdom (appended via P2)
+├── embeddings.json      # Vector index
+└── embedding_utils.py   # Semantic retrieval tool
 ```
 
-**特点**：跨任务持久化，支持语义检索
+**Key feature**: Cross-task persistence with semantic retrieval support
 
-### A.8 能力组合模式
+### A.8 Capability Composition Pattern
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    SKILL.md (配置)                       │
+│                    SKILL.md (Config)                      │
 ├─────────────────────────────────────────────────────────┤
 │  Hooks                Commands              Templates    │
 │  ┌─────────┐         ┌─────────┐          ┌─────────┐  │
@@ -447,36 +447,36 @@ wisdom/
 │  └─────────┘         │/recover │          └─────────┘  │
 │                      └─────────┘                        │
 ├─────────────────────────────────────────────────────────┤
-│  CLAUDE.md (自动加载) ◄─────────────── Scripts (生成)   │
+│  CLAUDE.md (auto-load) ◄─────────────── Scripts (gen)   │
 ├─────────────────────────────────────────────────────────┤
-│  wisdom/ (L3 永久存储)                                   │
-│  └── embedding_utils.py (语义检索)                      │
+│  wisdom/ (L3 permanent storage)                          │
+│  └── embedding_utils.py (semantic retrieval)            │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### A.9 未使用的 Skills 能力
+### A.9 Unused Skills Capabilities
 
-| 能力 | 原因 |
-|------|------|
-| `Stop` Hook | 论文需要更复杂的阶段判断 |
-| MCP Tools | 当前场景不需要外部服务 |
-| 多 Skill 协作 | 单一 Skill 已满足需求 |
+| Capability | Reason |
+|------------|--------|
+| `Stop` Hook | Paper requires more complex phase judgment |
+| MCP Tools | Not needed for current scenario |
+| Multi-Skill Coordination | Single Skill meets requirements |
 
-### A.10 能力使用总结
+### A.10 Capability Usage Summary
 
-| 能力类别 | 使用程度 | 论文对应 |
-|----------|----------|----------|
-| **Hooks** | ⭐⭐⭐⭐⭐ | N-Action Rule, Context Check |
-| **Commands** | ⭐⭐⭐⭐⭐ | /promote, /recover, /complete |
-| **Scripts** | ⭐⭐⭐⭐⭐ | P1/P2 Promotion 流程 |
-| **Templates** | ⭐⭐⭐⭐ | L1/L2 结构化存储 |
-| **CLAUDE.md** | ⭐⭐⭐⭐ | 自动 Context Hit |
-| **外部脚本 (Python)** | ⭐⭐⭐ | L3 Embedding 检索 |
+| Capability | Usage Level | Paper Mapping |
+|------------|-------------|---------------|
+| **Hooks** | ★★★★★ | N-Action Rule, Context Check |
+| **Commands** | ★★★★★ | /promote, /recover, /complete |
+| **Scripts** | ★★★★★ | P1/P2 Promotion flow |
+| **Templates** | ★★★★ | L1/L2 structured storage |
+| **CLAUDE.md** | ★★★★ | Automatic Context Hit |
+| **External Scripts (Python)** | ★★★ | L3 Embedding retrieval |
 
-**核心洞察**：**Hooks + Commands + Scripts** 的组合实现了论文中的 HCC 认知缓存机制，而 **CLAUDE.md** 提供了轻量级的自动上下文恢复能力。
+**Core Insight**: The combination of **Hooks + Commands + Scripts** implements the HCC cognitive caching mechanism from the paper, while **CLAUDE.md** provides lightweight automatic context recovery.
 
 ---
 
-*文档生成时间: 2026-02-06*
-*ML-Master 版本: 2.1.0*
-*论文: arXiv:2601.10402v3*
+*Document generated: 2026-02-06*
+*ML-Master Version: 2.1.0*
+*Paper: arXiv:2601.10402v3*

@@ -2,94 +2,95 @@
 
 **Hierarchical Cognitive Caching (HCC) for Ultra-Long-Horizon ML Tasks**
 
-基于论文 [arXiv:2601.10402v3](https://arxiv.org/abs/2601.10402v3) 的 Claude Code Skills 实现。通过分层认知缓存架构，让 AI Agent 在超长视界 ML 任务中保持上下文连贯性。
+[中文文档](README.zh-CN.md)
 
-## 核心架构
+A Claude Code Skills implementation based on [arXiv:2601.10402v3](https://arxiv.org/abs/2601.10402v3). Uses a hierarchical cognitive caching architecture to maintain context coherence for AI Agents across ultra-long-horizon ML tasks.
+
+## Core Architecture
 
 ```
 ┌─────────────────────────────────────────┐
 │           L1: Working Memory            │  execution_trace.md
-│           (每 5 次工具调用更新)            │  生命周期: 分钟级
+│           (Updated every 5 tool calls)  │  Lifecycle: minutes
 ├────────────── P1 Promotion ─────────────┤
 │           L2: Strategic Memory          │  findings.md + task_plan.md
-│           (关键洞察和实验记录)             │  生命周期: 任务级
+│           (Key insights & experiments)  │  Lifecycle: task-level
 ├────────────── P2 Promotion ─────────────┤
 │           L3: Permanent Wisdom          │  wisdom/*.md + embeddings
-│           (跨任务可复用经验)              │  生命周期: 永久
+│           (Reusable cross-task wisdom)  │  Lifecycle: permanent
 └─────────────────────────────────────────┘
 ```
 
-## 快速安装
+## Quick Start
 
 ```bash
-# 复制 skill 到你的项目
+# Copy the skill to your project
 cp -r skill/ your-project/.claude/skills/ml-master/
 
-# 确保脚本可执行
+# Make scripts executable
 chmod +x your-project/.claude/skills/ml-master/scripts/*.sh
 ```
 
-安装后，在 Claude Code 中即可使用 `/ml-master` 启动任务。
+Once installed, use `/ml-master` in Claude Code to start a task.
 
-## 使用方式
+## Usage
 
-### 1. 初始化任务
+### 1. Initialize a Task
 ```
 > /ml-master
-> 任务描述: CIFAR-10 image classification, target >85% accuracy
+> Task: CIFAR-10 image classification, target >85% accuracy
 ```
 
-### 2. 工作流程
-- Agent 自动执行 5-Action Rule (每 5 次工具调用更新 L1)
-- 阶段完成时执行 P1 Promotion (L1 → L2)
-- 任务完成时执行 P2 Promotion (L2 → L3)
+### 2. Workflow
+- Agent automatically follows the 5-Action Rule (updates L1 every 5 tool calls)
+- Run P1 Promotion (L1 → L2) when a phase completes
+- Run P2 Promotion (L2 → L3) when the task completes
 
-### 3. 命令
-| 命令 | 说明 |
-|------|------|
-| `/ml-master` | 启动新 ML 任务 |
-| `promote` | P1: 将 L1 洞察提升到 L2 |
-| `complete` | P2: 任务完成，提取 wisdom 到 L3 |
-| `status` | 查看当前 HCC 状态 |
+### 3. Commands
+| Command | Description |
+|---------|-------------|
+| `/ml-master` | Start a new ML task |
+| `promote` | P1: Compress L1 insights into L2 |
+| `complete` | P2: Extract wisdom from L2 to L3 |
+| `status` | View current HCC state |
 
-## 实验验证
+## Experiments
 
-| 任务 | Iterations | 结果 | 说明 |
-|------|-----------|------|------|
-| MNIST | 2 | 99.26% | 基础验证 |
-| CIFAR-10 | 3 | 89.38% | 中等任务 |
-| **Titanic** | **13** | **83.71%** | **长程验证 (75.84% → 83.71%)** |
+| Task | Iterations | Result | Notes |
+|------|-----------|--------|-------|
+| MNIST | 2 | 99.26% | Basic validation |
+| CIFAR-10 | 3 | 89.38% | Medium task |
+| **Titanic** | **13** | **83.71%** | **Long-horizon test (75.84% → 83.71%)** |
 
-## 目录结构
+## Directory Structure
 
 ```
 ml-master/
-├── skill/              # Claude Skill (核心，可直接安装)
-│   ├── SKILL.md        # Skill 定义 (Hooks, Commands, 提示词)
-│   ├── CLAUDE.md       # 自动上下文模板
-│   ├── scripts/        # Shell 脚本 (init, promote, complete...)
-│   ├── templates/      # L1/L2 文件模板
-│   └── wisdom/         # L3 智慧层 (embedding, wisdom files)
-├── docs/               # 文档
-│   ├── PRESENTATION.md # 15 分钟分享 PPT
-│   ├── PAPER_COMPARISON.md
-│   └── design.md       # 详细设计文档
-├── examples/           # 实验案例
+├── skill/              # Claude Skill (core, ready to install)
+│   ├── SKILL.md        # Skill definition (Hooks, Commands, Prompts)
+│   ├── CLAUDE.md       # Auto-context template
+│   ├── scripts/        # Shell scripts (init, promote, complete...)
+│   ├── templates/      # L1/L2 file templates
+│   └── wisdom/         # L3 wisdom layer (embeddings, wisdom files)
+├── docs/               # Documentation
+│   ├── PAPER_COMPARISON.md  # Paper vs implementation comparison
+│   └── design.md       # Detailed design document
+├── examples/           # Experiment cases
 │   ├── cifar10/        # CIFAR-10 (3 iterations)
-│   ├── titanic/        # Titanic (13 iterations, 长程验证)
+│   ├── titanic/        # Titanic (13 iterations, long-horizon test)
 │   └── mnist/          # MNIST (2 iterations)
-└── paper/              # 论文 PDF
+└── paper/              # Paper PDF
 ```
 
-## 关键概念
+## Key Concepts
 
-- **5-Action Rule**: 每 5 次工具调用后更新 L1，平衡记录频率和噪声
-- **P1 Promotion**: L1 → L2，LLM 总结关键洞察，清空 L1
-- **P2 Promotion**: L2 → L3，提取跨任务可复用的 wisdom
-- **Context Hit**: 通过 CLAUDE.md 自动加载，新 session 立即获得上下文
-- **Semantic Search**: L3 使用 sentence-transformers embedding 检索相关 wisdom
+- **5-Action Rule**: Update L1 every 5 tool calls, balancing recording frequency and noise
+- **P1 Promotion**: L1 → L2, LLM summarizes key insights, then clears L1
+- **P2 Promotion**: L2 → L3, extracts reusable cross-task wisdom
+- **Context Hit**: Auto-loaded via CLAUDE.md, new sessions get context immediately
+- **Semantic Search**: L3 uses sentence-transformers embeddings to retrieve relevant wisdom
 
-## 论文
+## Paper
 
 - **HCC**: [Hierarchical Cognitive Caching for LLM-Based Autonomous Agents](https://arxiv.org/abs/2601.10402v3)
 

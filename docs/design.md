@@ -1,120 +1,120 @@
-这份设计文档旨在指导开发团队将现有的 `planning-with-files` 仓库重构为 **ML-Master 2.0** 的完整工程实现。
+This design document guides the refactoring of the existing `planning-with-files` repository into the full engineering implementation of **ML-Master 2.0**.
 
 ---
 
-# ML-Master 2.0 实现需求设计文档
-**目标项目**：改造 `planning-with-files` 仓库
-**核心理论**：Hierarchical Cognitive Caching (HCC) 架构
-**设计目标**：实现超长视界（Ultra-Long-Horizon）的自主机器学习工程能力
+# ML-Master 2.0 Implementation Design Document
+**Target Project**: Refactor `planning-with-files` repository
+**Core Theory**: Hierarchical Cognitive Caching (HCC) Architecture
+**Design Goal**: Enable ultra-long-horizon autonomous machine learning engineering capability
 
 ---
 
-## 1. 核心架构重构：HCC 分层存储设计
+## 1. Core Architecture Refactoring: HCC Layered Storage Design
 
-原仓库的文件结构是扁平的，ML-Master 2.0 要求将存储严格划分为三个认知层级。需对文件定义和生命周期进行重新设计。
+The original repository has a flat file structure. ML-Master 2.0 requires strict partitioning of storage into three cognitive layers, with redesigned file definitions and lifecycles.
 
-### 1.1 L1 层：演进体验 (Evolving Experience)
-*   **对应文件**：`execution_trace.md` (原 `progress.md` 的改造)
-*   **功能定义**：作为 Agent 的“工作记忆 (RAM)”。
-*   **存储内容**：
-    *   当前正在执行的代码片段（Code Patches）。
-    *   原始终端输出（Terminal Outputs）、错误堆栈。
-    *   单步调试的临时观察。
-*   **生命周期**：**极短**。仅在当前“探索阶段”内保留。一旦阶段结束触发“Context Promotion”，此文件必须被**清空**或归档。
+### 1.1 L1 Layer: Evolving Experience
+*   **Mapped File**: `execution_trace.md` (refactored from `progress.md`)
+*   **Function**: Serves as the Agent's "Working Memory (RAM)".
+*   **Content**:
+    *   Currently executing code patches.
+    *   Raw terminal outputs and error stacks.
+    *   Temporary observations from step-by-step debugging.
+*   **Lifecycle**: **Very short**. Retained only within the current "exploration phase". Must be **cleared** or archived once a phase ends and "Context Promotion" is triggered.
 
-### 1.2 L2 层：提炼知识 (Refined Knowledge)
-*   **对应文件**：`findings.md` (增强版)
-*   **功能定义**：作为 Agent 的“中期战略记忆”。
-*   **存储内容**：
-    *   **关键判断 (Judgments)**：例如“特征 A 导致了过拟合”。
-    *   **实验洞察 (Insights)**：例如“学习率 1e-4 比 1e-3 更稳定”。
-    *   **阶段性总结**：从 L1 中提炼出的高价值信息，去除噪音。
-*   **生命周期**：**任务级持久化**。在整个任务周期内保留，用于跨越多次 Context Clear。
+### 1.2 L2 Layer: Refined Knowledge
+*   **Mapped File**: `findings.md` (enhanced version)
+*   **Function**: Serves as the Agent's "Mid-term Strategic Memory".
+*   **Content**:
+    *   **Key Judgments**: e.g., "Feature A caused overfitting".
+    *   **Experiment Insights**: e.g., "Learning rate 1e-4 is more stable than 1e-3".
+    *   **Phase Summaries**: High-value information distilled from L1, with noise removed.
+*   **Lifecycle**: **Task-level persistence**. Retained throughout the entire task, survives multiple Context Clears.
 
-### 1.3 L2 层：战略状态 (Strategic State)
-*   **对应文件**：`task_plan.md` (结构化改造)
-*   **功能定义**：防止“目标漂移 (Goal Drift)”。
-*   **存储内容**：
-    *   **分层计划树**：探索方向 (Directions) -> 具体实施 (Implementations)。
-    *   **状态追踪**：待办 / 进行中 / 已完成 / 已放弃。
-*   **生命周期**：**任务级持久化**。随任务进展动态更新。
+### 1.3 L2 Layer: Strategic State
+*   **Mapped File**: `task_plan.md` (structured refactoring)
+*   **Function**: Prevents "Goal Drift".
+*   **Content**:
+    *   **Hierarchical Plan Tree**: Directions → Implementations.
+    *   **Status Tracking**: pending / in_progress / complete / abandoned.
+*   **Lifecycle**: **Task-level persistence**. Dynamically updated as the task progresses.
 
-### 1.4 L3 层：先验智慧 (Prior Wisdom)
-*   **对应文件**：新增 `wisdom/` 目录或 `global_wisdom.md`
-*   **功能定义**：作为 Agent 的“长期记忆 (Long-term Memory)”。
-*   **存储内容**：
-    *   跨任务通用的代码模板（如鲁棒的 CV 验证框架）。
-    *   常见错误的解决方案库。
-    *   最佳实践清单。
-*   **生命周期**：**永久**。跨任务存在，只读（除非任务结束时触发 L3 更新）。
-
----
-
-## 2. 核心机制设计：上下文迁移 (Context Migration)
-
-这是 ML-Master 2.0 的引擎，需要通过脚本或 Prompt 逻辑实现数据的自动化流转。
-
-### 2.1 机制一：上下文预取 (Context Prefetching)
-*   **触发时机**：任务初始化阶段（`/plan` 命令执行时）。
-*   **逻辑需求**：
-    1.  分析用户输入的任务描述。
-    2.  从 L3 (`wisdom/`) 中检索最相关的知识片段（例如：如果是图像分类任务，提取 CNN 相关智慧；如果是表格数据，提取 XGBoost 相关智慧）。
-    3.  将提取的智慧注入到 `task_plan.md` 的初始部分或 Context 中，作为“热启动”信息。
-
-### 2.2 机制二：上下文提升 (Context Promotion) - 阶段级
-*   **触发时机**：当 `task_plan.md` 中的一个“子阶段”被标记为完成时。
-*   **逻辑需求**：
-    1.  **读取** L1 (`execution_trace.md`) 的全部内容。
-    2.  **执行认知压缩**：调用 LLM 总结该阶段的“执行摘要”和“战略洞察”。
-    3.  **写入** L2 (`findings.md`)。
-    4.  **清空** L1 (`execution_trace.md`)。
-    *   *目的*：释放上下文窗口，将“噪音”转化为“信号”。
-
-### 2.3 机制三：上下文命中 (Context Hit)
-*   **触发时机**：Agent 准备生成新代码或回答问题时。
-*   **逻辑需求**：
-    1.  优先检查 L1：如果问题涉及刚才的报错，直接从 L1 获取。
-    2.  回退检查 L2：如果问题涉及之前的实验结论，从 L2 获取。
-    *   *实现方式*：通过系统提示词（System Prompt）强制 Agent 在行动前先查阅这两个文件。
+### 1.4 L3 Layer: Prior Wisdom
+*   **Mapped File**: New `wisdom/` directory or `global_wisdom.md`
+*   **Function**: Serves as the Agent's "Long-term Memory".
+*   **Content**:
+    *   Cross-task code templates (e.g., robust CV validation framework).
+    *   Common error solution library.
+    *   Best practice checklists.
+*   **Lifecycle**: **Permanent**. Persists across tasks, read-only (unless L3 update is triggered at task completion).
 
 ---
 
-## 3. 交互流程与指令设计 (SKILL.md 改造)
+## 2. Core Mechanism Design: Context Migration
 
-需要重写 `SKILL.md`，将上述逻辑转化为 Agent 必须遵守的“宪法”。
+This is the engine of ML-Master 2.0, implemented through scripts or prompt logic for automated data flow.
 
-### 3.1 系统提示词 (System Prompt) 核心规则
-1.  **双重读写规则**：
-    *   对于**执行细节**（代码运行、报错），必须且只能写入 L1。
-    *   对于**结论**（什么有效、什么无效），必须且只能写入 L2。
-2.  **2-Action Rule (两步一记)**：
-    *   强制 Agent 每执行 2 个工具调用（如 `RunCommand`, `EditFile`），必须更新一次 L1 文件。
-3.  **禁止上下文堆积**：
-    *   明确禁止 Agent 依赖对话历史来记忆之前的错误，必须依赖文件记录。
+### 2.1 Mechanism 1: Context Prefetching
+*   **Trigger**: Task initialization phase (when `/plan` command is executed).
+*   **Logic**:
+    1.  Analyze the user's task description.
+    2.  Retrieve the most relevant knowledge fragments from L3 (`wisdom/`) (e.g., extract CNN-related wisdom for image classification tasks; extract XGBoost-related wisdom for tabular data).
+    3.  Inject extracted wisdom into the initial section of `task_plan.md` or Context as "warm start" information.
 
-### 3.2 新增命令设计
-*   **`/promote`**：手动触发阶段性总结。强制执行 L1 -> L2 的转化并清空 L1。
-*   **`/recover`**：用于 `/clear` 之后的恢复。强制 Agent 仅读取 L2 (`task_plan.md`, `findings.md`) 来重建认知状态，忽略之前的对话历史。
+### 2.2 Mechanism 2: Context Promotion - Phase Level
+*   **Trigger**: When a "sub-phase" in `task_plan.md` is marked as complete.
+*   **Logic**:
+    1.  **Read** all content from L1 (`execution_trace.md`).
+    2.  **Perform cognitive compression**: Call LLM to summarize the phase's "execution summary" and "strategic insights".
+    3.  **Write** to L2 (`findings.md`).
+    4.  **Clear** L1 (`execution_trace.md`).
+    *   *Purpose*: Free context window space, convert "noise" into "signal".
 
----
-
-## 4. 模板与脚本需求
-
-### 4.1 模板文件 (`templates/`)
-*   **`task_plan.md`**：需预设分层结构（Phase / Sub-task / Status / Outcome）。
-*   **`findings.md`**：需预设结构化板块（Key Insights / Validated Hypotheses / Failed Attempts）。
-*   **`execution_trace.md`**：需包含时间戳、操作类型、输出摘要的占位符。
-
-### 4.2 自动化脚本 (`scripts/`)
-*   **初始化脚本**：在项目启动时，自动创建上述三个文件，并根据任务类型从 L3 复制模板。
-*   **清理脚本**：提供一个工具函数，允许 Agent 一键清空 `execution_trace.md`（在 Promotion 完成后调用）。
+### 2.3 Mechanism 3: Context Hit
+*   **Trigger**: When the Agent prepares to generate new code or answer questions.
+*   **Logic**:
+    1.  Check L1 first: If the question involves a recent error, retrieve directly from L1.
+    2.  Fall back to L2: If the question involves previous experiment conclusions, retrieve from L2.
+    *   *Implementation*: Force the Agent to consult these two files before acting, via System Prompt.
 
 ---
 
-## 5. 验收标准 (Success Metrics)
+## 3. Interaction Flow & Command Design (SKILL.md Refactoring)
 
-改造完成后的系统应满足以下标准，以证明实现了 ML-Master 2.0：
+SKILL.md needs to be rewritten, transforming the above logic into a "constitution" the Agent must follow.
 
-1.  **持久化验证**：在 Claude Code 中执行 `/clear` 清空上下文后，Agent 能够通过读取文件，在 1 分钟内准确说出：“我们刚才完成了 X 阶段，发现了 Y 结论，下一步计划是 Z”，且**不包含**之前冗余的报错信息。
-2.  **信息流转验证**：L1 文件的大小应呈现“锯齿状”（随执行增加，阶段结束归零），而 L2 文件的大小应呈现“阶梯状”（随阶段结束而单调增加）。
-3.  **长程推理能力**：Agent 在第 50 轮对话时，仍能引用第 1 轮对话中确立并在 L2 中记录的战略原则，而不会发生“目标漂移”。
+### 3.1 System Prompt Core Rules
+1.  **Dual Read/Write Rule**:
+    *   **Execution details** (code runs, errors) must and can only be written to L1.
+    *   **Conclusions** (what works, what doesn't) must and can only be written to L2.
+2.  **2-Action Rule**:
+    *   Force the Agent to update L1 every 2 tool calls (e.g., `RunCommand`, `EditFile`).
+3.  **No Context Accumulation**:
+    *   Explicitly forbid the Agent from relying on conversation history to remember past errors; must rely on file records.
+
+### 3.2 New Command Design
+*   **`/promote`**: Manually trigger phase-level summarization. Force L1 → L2 transformation and clear L1.
+*   **`/recover`**: For recovery after `/clear`. Force the Agent to rebuild cognitive state by reading only L2 (`task_plan.md`, `findings.md`), ignoring previous conversation history.
+
+---
+
+## 4. Templates & Script Requirements
+
+### 4.1 Template Files (`templates/`)
+*   **`task_plan.md`**: Pre-set hierarchical structure (Phase / Sub-task / Status / Outcome).
+*   **`findings.md`**: Pre-set structured sections (Key Insights / Validated Hypotheses / Failed Attempts).
+*   **`execution_trace.md`**: Include placeholders for timestamps, operation types, and output summaries.
+
+### 4.2 Automation Scripts (`scripts/`)
+*   **Initialization script**: Automatically create the three files at project startup, copying templates from L3 based on task type.
+*   **Cleanup script**: Provide a utility function allowing the Agent to clear `execution_trace.md` in one step (called after Promotion).
+
+---
+
+## 5. Acceptance Criteria (Success Metrics)
+
+The refactored system must meet the following criteria to prove ML-Master 2.0 is achieved:
+
+1.  **Persistence Validation**: After executing `/clear` in Claude Code to wipe context, the Agent can accurately state within 1 minute: "We just completed phase X, discovered conclusion Y, and the next step is Z" — **without** including previous verbose error messages.
+2.  **Information Flow Validation**: L1 file size should exhibit a "sawtooth" pattern (grows during execution, resets to zero at phase end), while L2 file size should exhibit a "staircase" pattern (monotonically increases at each phase end).
+3.  **Long-horizon Reasoning**: At conversation round 50, the Agent can still reference strategic principles established in round 1 and recorded in L2, without "goal drift".
