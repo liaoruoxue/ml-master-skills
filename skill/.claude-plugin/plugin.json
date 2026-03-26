@@ -1,0 +1,12 @@
+{
+  "name": "ml-master",
+  "version": "2.1.0",
+  "description": "Hierarchical Cognitive Caching (HCC) for ultra-long-horizon ML tasks. L1/L2/L3 memory layers with P1/P2 promotion.",
+  "author": { "name": "liaoruoxue" },
+  "homepage": "https://github.com/liaoruoxue/ml-master-skills",
+  "repository": "https://github.com/liaoruoxue/ml-master-skills",
+  "license": "MIT",
+  "keywords": ["ml", "machine-learning", "hcc", "memory", "long-horizon"],
+  "category": "productivity",
+  "commands": ["./SKILL.md"]
+}
