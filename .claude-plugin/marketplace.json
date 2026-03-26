@@ -1,0 +1,31 @@
+{
+  "name": "ml-master-skills",
+  "owner": {
+    "name": "liaoruoxue"
+  },
+  "metadata": {
+    "description": "ML-Master: Hierarchical Cognitive Caching skills for long-horizon ML engineering"
+  },
+  "plugins": [
+    {
+      "name": "ml-master",
+      "source": "./skill",
+      "description": "HCC system for ultra-long-horizon ML tasks. L1/L2/L3 memory with P1/P2 promotion.",
+      "version": "2.1.0",
+      "author": {
+        "name": "liaoruoxue"
+      },
+      "homepage": "https://github.com/liaoruoxue/ml-master-skills",
+      "repository": "https://github.com/liaoruoxue/ml-master-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "ml",
+        "machine-learning",
+        "hcc",
+        "long-horizon",
+        "agents"
+      ]
+    }
+  ]
+}
